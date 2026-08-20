@@ -6,12 +6,7 @@ experience, case studies, education, and a contact form.
 
 ## Run locally
 
-Requires Node.js 22.13 or newer.
-
-On Windows, double-click `Open Portfolio.cmd`. It starts the local site when
-needed and opens it in your browser.
-
-Or run it manually:
+Requires Node.js 22.
 
 ```bash
 npm install
@@ -23,6 +18,12 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## Deploy with Vercel
+
+Connect this GitHub repository to Vercel and deploy the `main` branch. Keep the
+Vercel Output Directory setting blank; the Nitro adapter creates the required
+deployment output automatically.
 
 ## Main project files
 

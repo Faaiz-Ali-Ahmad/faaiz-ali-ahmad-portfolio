@@ -3,6 +3,18 @@
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 
+type JourneyController = {
+  el?: HTMLElement;
+  offset?: number;
+  position?: number;
+  section?: number;
+  stops?: number[];
+};
+
+function getJourney() {
+  return (window as Window & { __journey?: JourneyController }).__journey;
+}
+
 const roles = [
   {
     group: "Current", title: "Web Developer", company: "Samskrita Bharati",
@@ -19,7 +31,7 @@ const roles = [
   },
   {
     group: "Current", title: "Supervisor", company: "Popeyes Louisiana Kitchen",
-    focus: "Team Leadership · Operations · Training", date: "[Start Month & Year] — Present",
+    focus: "Team Leadership · Operations · Training", date: "January 2024 — Present",
     tags: ["Leadership", "Inventory", "Scheduling", "Training"],
     details: [
       "Supervise daily kitchen operations in a busy, high-volume restaurant.",
@@ -115,11 +127,11 @@ function Projects() {
   const [open, setOpen] = useState<number | null>(null);
   useEffect(() => {
     let frame = 0;
-    const watch = () => { setVisible((window as any).__journey?.section === 2); frame = requestAnimationFrame(watch); };
+    const watch = () => { setVisible(getJourney()?.section === 2); frame = requestAnimationFrame(watch); };
     frame = requestAnimationFrame(watch); return () => cancelAnimationFrame(frame);
   }, []);
   const goToCaseStudies = () => {
-    const journey = (window as any).__journey;
+    const journey = getJourney();
     const destination = journey?.stops?.[5] ?? 5 / 8;
     if (journey?.el) journey.el.scrollTo({ top: destination * (journey.el.scrollHeight - journey.el.clientHeight), behavior: "smooth" });
     setOpen(null);
@@ -139,8 +151,8 @@ function Projects() {
         <em>EXPLORE +</em>
       </button>)}
     </div>
-    {open !== null && <div className="project-backdrop" onClick={() => setOpen(null)}>
-      <article className="project-dialog" role="dialog" aria-modal="true" aria-label={projects[open].title} onClick={event => event.stopPropagation()}>
+    {open !== null && <div className="project-backdrop">
+      <article className="project-dialog" role="dialog" aria-modal="true" aria-label={projects[open].title}>
         <button className="details-close" onClick={() => setOpen(null)} aria-label="Close project details">✕</button>
         <span className="details-kicker">PROJECT {String(open + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}</span>
         {projects[open].badge && <i className="project-badge">{projects[open].badge}</i>}
@@ -157,7 +169,7 @@ function Experience() {
   const [open, setOpen] = useState<number | null>(null);
   useEffect(() => {
     let frame = 0;
-    const watch = () => { setVisible((window as any).__journey?.section === 3); frame = requestAnimationFrame(watch); };
+    const watch = () => { setVisible(getJourney()?.section === 3); frame = requestAnimationFrame(watch); };
     frame = requestAnimationFrame(watch); return () => cancelAnimationFrame(frame);
   }, []);
   return <section className={`experience-ui ${visible ? "is-visible" : ""}`} aria-hidden={!visible}>
@@ -170,8 +182,8 @@ function Experience() {
             <button onClick={() => setOpen(open === index ? null : index)} aria-expanded={open === index}>
               <span className="role-star">✦</span><span className="role-summary"><strong>{role.title} <em>@ {role.company}</em></strong><time>{role.date}</time></span><span className="role-toggle">{open === index ? "CLOSE −" : "VIEW +"}</span>
             </button>
-            {open === index && <div className="details-backdrop" onClick={() => setOpen(null)}>
-              <div className="details-dialog" role="dialog" aria-modal="true" aria-label={`${role.title} at ${role.company}`} onClick={event => event.stopPropagation()}>
+            {open === index && <div className="details-backdrop">
+              <div className="details-dialog" role="dialog" aria-modal="true" aria-label={`${role.title} at ${role.company}`}>
                 <button className="details-close" onClick={() => setOpen(null)} aria-label="Close experience details">✕</button>
                 <span className="details-kicker">{role.group} · {role.date}</span>
                 <h4>{role.title}</h4><h5>@ {role.company}</h5><p>{role.focus}</p>
@@ -192,7 +204,7 @@ function Education() {
   useEffect(() => {
     let frame = 0;
     const watch = () => {
-      const journey = (window as any).__journey;
+      const journey = getJourney();
       const position = journey?.position ?? (journey?.offset ?? 0) * 8;
       setVisible(position >= 5.5 && position < 6.55);
       setActive(position >= 6.18 ? 1 : 0);
@@ -234,7 +246,7 @@ function Mystery() {
   useEffect(() => {
     let frame = 0;
     const watch = () => {
-      const journey = (window as any).__journey;
+      const journey = getJourney();
       const position = journey?.position ?? (journey?.offset ?? 0) * 8;
       const readingProgress = Math.max(0, Math.min(.78, position - 7));
       const next = Math.min(mysterySequence.length - 1, Math.floor(readingProgress / (.78 / mysterySequence.length)));
@@ -276,7 +288,7 @@ function Contact() {
   useEffect(() => {
     let frame = 0;
     const watch = () => {
-      const journey = (window as any).__journey;
+      const journey = getJourney();
       const position = journey?.position ?? (journey?.offset ?? 0) * 8;
       setVisible(position >= 7.8);
       frame = requestAnimationFrame(watch);
@@ -371,9 +383,9 @@ function Atmosphere() {
     let frame = 0;
     const moveWeather = () => {
       const element = frameRef.current;
-      const journey = (window as any).__journey;
+      const journey = getJourney();
       if (element && journey) {
-        const position = journey.position ?? journey.offset * 8;
+        const position = journey.position ?? (journey.offset ?? 0) * 8;
         element.dataset.scene = String(Math.round(position));
         element.style.setProperty("--weather-x", `${Math.sin(position * 1.18) * 5.5}vw`);
         element.style.setProperty("--weather-y", `${Math.cos(position * .83) * 4}vh`);
@@ -388,5 +400,5 @@ function Atmosphere() {
 }
 
 export default function Home() {
-  return <><div id="root" /><Atmosphere /><Projects /><Experience /><Education /><Mystery /><Contact /><Script id="dungyov-experience" src="/assets/site.js" type="module" strategy="afterInteractive" /></>;
+  return <><div id="root" /><Atmosphere /><Projects /><Experience /><Education /><Mystery /><Contact /><Script id="portfolio-experience" src="/assets/site.js" type="module" strategy="lazyOnload" /></>;
 }
